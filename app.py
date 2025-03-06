@@ -12,23 +12,24 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 def fetch_balloon_data():
     base_url = "https://a.windbornesystems.com/treasure/"
     data = []
-    
+
     for i in range(24):
         try:
             url = f"{base_url}{str(i).zfill(2)}.json"
             response = requests.get(url)
             if response.status_code == 200:
-                json_data = response.json()
-                if isinstance(json_data, list):
-                    for entry in json_data:
-                        if isinstance(entry, dict) and 'latitude' in entry and 'longitude' in entry:
-                            data.append(entry)
-        except (requests.RequestException, json.JSONDecodeError) as e:
+                try:
+                    json_data = json.loads(response.text)  # Manually parse JSON
+                    if isinstance(json_data, list):
+                        for entry in json_data:
+                            if isinstance(entry, dict) and 'latitude' in entry and 'longitude' in entry:
+                                data.append(entry)
+                except json.JSONDecodeError:
+                    print(f"Skipping corrupted JSON from {url}")
+        except requests.RequestException as e:
             print(f"Error fetching {url}: {e}")
-    
-    df = pd.DataFrame(data)
-    print("Fetched Balloon Data Sample:", df.head())  # Debugging line
-    return df
+
+    return pd.DataFrame(data)
 
 @cache.memoize(timeout=1800)  # Cache responses for 30 minutes
 def fetch_weather_data(lat, lon):
