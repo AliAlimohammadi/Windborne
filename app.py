@@ -26,7 +26,9 @@ def fetch_balloon_data():
         except (requests.RequestException, json.JSONDecodeError) as e:
             print(f"Error fetching {url}: {e}")
     
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    print("Fetched Balloon Data Sample:", df.head())  # Debugging line
+    return df
 
 @cache.memoize(timeout=1800)  # Cache responses for 30 minutes
 def fetch_weather_data(lat, lon):
