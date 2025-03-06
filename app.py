@@ -19,17 +19,22 @@ def fetch_balloon_data():
             response = requests.get(url)
             if response.status_code == 200:
                 try:
-                    json_data = json.loads(response.text)  # Manually parse JSON
+                    json_data = json.loads(response.text)  # Parse JSON manually
                     if isinstance(json_data, list):
                         for entry in json_data:
-                            if isinstance(entry, dict) and 'latitude' in entry and 'longitude' in entry:
-                                data.append(entry)
+                            if isinstance(entry, list) and len(entry) == 3:
+                                data.append({
+                                    "latitude": entry[0],
+                                    "longitude": entry[1],
+                                    "altitude": entry[2]
+                                })
                 except json.JSONDecodeError:
                     print(f"Skipping corrupted JSON from {url}")
         except requests.RequestException as e:
             print(f"Error fetching {url}: {e}")
 
     return pd.DataFrame(data)
+
 
 @cache.memoize(timeout=1800)  # Cache responses for 30 minutes
 def fetch_weather_data(lat, lon):
